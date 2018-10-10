@@ -155,13 +155,16 @@ if __name__ == "__main__":
         subkeys = gen_subkeys(key)
         if sys.argv[3] == "decrypt":
             result = ""
+            if sys.argv[1][0] != "0" and sys.argv[1][1] != "x":
+                print "Expected decrypt string to start with 0x"
+                sys.exit(2)
             msg = [sys.argv[1][2:][i:i+16] for i in range(0, len(sys.argv[1]), 16)][:-1]
             for i in range(0, len(msg)):
                 msg[i] = struct.pack(">Q", int(msg[i], 16))
             
             print 'Decrypted string for "%s":' % (sys.argv[1])
             for i in range(0, len(msg)):
-                result += hex(encrypt_msg(msg[i], subkeys, False))[2:].decode("hex")
+                result += format((encrypt_msg(msg[i], subkeys, False)),'x').decode("hex")
             print result
         else:
             result = "0x"
@@ -169,7 +172,7 @@ if __name__ == "__main__":
             msg[-1] = "{0: <8}".format(msg[-1])
             print 'Encrypted string for "%s":' % (sys.argv[1])
             for i in range(0, len(msg)):
-                result += hex(encrypt_msg(msg[i], subkeys, True))[2:-1]
+                result += format(encrypt_msg(msg[i], subkeys, True), 'x')
             print result
     else:
         msg = open(sys.argv[3]).read()
