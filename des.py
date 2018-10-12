@@ -144,35 +144,51 @@ def send_info(hostname, port, content):
     s.shutdown(socket.SHUT_WR)
     s.close()
 
+#msg = format(text, 'x')
+#key = string
+#encrypt = True/False
+def des_api(msg, key, encrypt):
+    subkeys = gen_subkeys("{0: <8}".format(key[0:8]))
+    result = ""
+    if encrypt:
+        msg = [msg[i:i+8] for i in range(0, len(msg), 8)]
+        msg[-1] = "{0: <8}".format(msg[-1]) #pads with zero
+        for i in range(0, len(msg)):
+            #cover the case where it's 00 < 10 (leading zeros)
+            result += format(encrypt_msg(msg[i], subkeys, True), '016x') 
+    else:
+        msg = [msg[i:i+16] for i in range(0, len(msg), 16)]
+        for i in range(0, len(msg)):
+            msg[i] = struct.pack(">Q", int(msg[i], 16))
+        for i in range(0, len(msg)):
+            result += format((encrypt_msg(msg[i], subkeys, False)),'016x').decode("hex")
+    return result
+
 if __name__ == "__main__":
-    
+  
     if len(sys.argv) != 5 and len(sys.argv) != 4:
         print "usage: des.py <IP> <PORT> <FILE> <KEY> || des.py <STRING> <KEY> <encrypt/decrypt>"
         sys.exit(2)
     
+    result = ""
     if len(sys.argv) == 4:
         key     = "{0: <8}".format(sys.argv[2][0:8])
         subkeys = gen_subkeys(key)
         if sys.argv[3] == "decrypt":
-            result = ""
-            if sys.argv[1][0] != "0" and sys.argv[1][1] != "x":
-                print "Expected decrypt string to start with 0x"
-                sys.exit(2)
-            msg = [sys.argv[1][2:][i:i+16] for i in range(0, len(sys.argv[1]), 16)][:-1]
+            msg = [sys.argv[1][i:i+16] for i in range(0, len(sys.argv[1]), 16)]
             for i in range(0, len(msg)):
                 msg[i] = struct.pack(">Q", int(msg[i], 16))
             
             print 'Decrypted string for "%s":' % (sys.argv[1])
             for i in range(0, len(msg)):
-                result += format((encrypt_msg(msg[i], subkeys, False)),'x').decode("hex")
+                result += format((encrypt_msg(msg[i], subkeys, False)),'016x').decode("hex")
             print result
         else:
-            result = "0x"
             msg     = [sys.argv[1][i:i+8] for i in range(0, len(sys.argv[1]), 8)]
             msg[-1] = "{0: <8}".format(msg[-1])
             print 'Encrypted string for "%s":' % (sys.argv[1])
             for i in range(0, len(msg)):
-                result += format(encrypt_msg(msg[i], subkeys, True), 'x')
+                result += format(encrypt_msg(msg[i], subkeys, True), '016x')
             print result
     else:
         msg = open(sys.argv[3]).read()
@@ -180,8 +196,6 @@ if __name__ == "__main__":
         msg[-1] = "{0: <8}".format(msg[-1])
         key = "{0: <8}".format(sys.argv[4][0:8])
         subkeys = gen_subkeys(key)
-        result = ""
         for i in range(0, len(msg)):
             result += struct.pack(">Q", encrypt_msg(msg[i], subkeys, True))
         send_info(sys.argv[1], int(sys.argv[2]), result) 
-
