@@ -1,5 +1,7 @@
 HOW TO EXECUTE PROPERLY
 ----------------------------------------
+Note: You will need to import des.py from the DES folder into the same directory
+
 1. Run python ns-kdc.py
 2. Run python ns-bob.py first
 3. Run python ns-alice.py second
