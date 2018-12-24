@@ -1,3 +1,6 @@
 [submodule "RSA"]
 	path = RSA
 	url = git@github.com:Machinocheese/RSA.git
+[submodule "LZW"]
+	path = LZW
+	url = git@github.com:Machinocheese/Signal.git
